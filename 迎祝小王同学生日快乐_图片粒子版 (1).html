@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0, user-scalable=no" name="viewport"/>
+  <title>迎祝最美的小王同学生日快乐</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: black;
+    }
+
+    #subtitle {
+      position: absolute;
+      top: 5%;
+      width: 100%;
+      text-align: center;
+      font-size: 2.5em;
+      font-family: 'Segoe UI', sans-serif;
+      color: #ffefc0;
+      text-shadow: 0 0 15px rgba(255, 223, 150, 0.8), 0 0 30px rgba(255, 200, 100, 0.6);
+      z-index: 20;
+      animation: fadeInText 3s ease-in-out;
+      font-weight: bold;
+    }
+
+    #countdown {
+      position: absolute;
+      top: 18%;
+      width: 100%;
+      text-align: center;
+      font-size: 2.5em;
+      font-family: 'Courier New', monospace;
+      color: #fff8dc;
+      z-index: 15;
+      animation: pulse 2s ease-in-out infinite;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 10px;
+      border-radius: 8px;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    }
+
+    #photo {
+      position: absolute;
+      top: 28%;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: 50%; /* 设置最大宽度为 50% */
+      height: auto; /* 保持宽高比 */
+      border-radius: 12px;
+      z-index: 10;
+    }
+
+    #triggerButton {
+      position: fixed;
+      bottom: 8%;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 24px;
+      font-size: 5vw;
+      background: #ff9a00;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      z-index: 150;
+      box-shadow: 0 0 10px rgba(255, 154, 0, 0.8);
+    }
+
+    #bigTitle {
+      display: none;
+      position: fixed;
+      top: 30%;
+      width: 100%;
+      text-align: center;
+      font-size: 6vw;
+      color: #ffd700;
+      text-shadow: 0 0 20px #ff0, 0 0 40px #f80;
+      z-index: 102;
+      animation: titleFadeIn 3s ease-in-out forwards;
+    }
+
+    #cake {
+      display: none;
+      position: fixed;
+      bottom: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 6em;
+      z-index: 101;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('https://cdn.jsdelivr.net/gh/VincentGarreau/particles.js@master/demo/media/starfield.png') repeat;
+      background-size: cover;
+      opacity: 0.3;
+      z-index: 0;
+    }
+
+    /* 信封样式 */
+    #envelopeButton {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 5vw;
+      cursor: pointer;
+      z-index: 1000;
+      display: none;
+    }
+
+    #envelopeContent {
+      display: none;
+      position: fixed;
+      top: 60%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.9);
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      z-index: 1001;
+      font-size: 1.5em;
+      font-family: 'Segoe UI', sans-serif;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 添加背景音乐 -->
+  <audio id="backgroundMusic" loop autoplay>
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mp3">
+    Your browser does not support the audio element.
+  </audio>
+
+  <div id="subtitle">迎祝最美的小王同学生日快乐</div>
+  <div id="countdown">倒计时加载中...</div>
+
+  <!-- 使用图片 URL 显示图片 -->
+  <img id="photo" src="https://i.imgur.com/6XBurO7.jpeg" alt="生日快乐">
+  
+  <button id="triggerButton" onclick="triggerCelebration()">🎉 立即触发庆典</button>
+  <div id="bigTitle">🎉 小王同学生日快乐 🎉</div>
+  <div id="cake">🎂</div>
+
+  <!-- 信封按钮 -->
+  <div id="envelopeButton" onclick="openEnvelope()">📩</div>
+  <!-- 信封内容 -->
+  <div id="envelopeContent">
+    <p>🎁 小王生日快乐！</p>
+    <p>希望在新的一岁里小王能开心快乐无忧无虑，<br/>土土跟团团能健康平安。</p>
+    <button onclick="closeEnvelope()">关闭</button>
+  </div>
+
+  <!-- 动态星空背景 -->
+  <canvas id="starsCanvas"></canvas>
+
+  <script>
+    // 创建动态星空背景
+    const starsCanvas = document.getElementById("starsCanvas");
+    const ctx = starsCanvas.getContext("2d");
+    starsCanvas.width = window.innerWidth;
+    starsCanvas.height = window.innerHeight;
+
+    const stars = [];
+    const numStars = 100; // 星星数量
+
+    function createStars() {
+      for (let i = 0; i < numStars; i++) {
+        stars.push({
+          x: Math.random() * starsCanvas.width,
+          y: Math.random() * starsCanvas.height,
+          radius: Math.random() * 1.5 + 0.5,
+          speedX: Math.random() * 0.5 - 0.25,
+          speedY: Math.random() * 0.5 - 0.25,
+          alpha: Math.random() * 0.5 + 0.3
+        });
+      }
+    }
+
+    function updateStars() {
+      ctx.clearRect(0, 0, starsCanvas.width, starsCanvas.height);
+      
+      for (let i = 0; i < stars.length; i++) {
+        let star = stars[i];
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
+        ctx.fill();
+        
+        // 更新星星位置
+        star.x += star.speedX;
+        star.y += star.speedY;
+
+        // 重置星星位置
+        if (star.x < 0 || star.x > starsCanvas.width || star.y < 0 || star.y > starsCanvas.height) {
+          star.x = Math.random() * starsCanvas.width;
+          star.y = Math.random() * starsCanvas.height;
+        }
+      }
+
+      requestAnimationFrame(updateStars);
+    }
+
+    createStars();
+    updateStars();
+
+    // Countdown logic
+    function updateCountdown() {
+      const now = new Date();
+      const target = new Date(now.getFullYear(), 6, 22, 0, 0, 0);
+      const diff = target - now;
+      if (diff <= 0) {
+        clearInterval(countdownInterval);
+        triggerCelebration();  // 倒计时结束时触发庆典
+        return;
+      }
+      const days = Math.floor(diff / 86400000);
+      const hours = Math.floor((diff % 86400000) / 3600000);
+      const minutes = Math.floor((diff % 3600000) / 60000);
+      const seconds = Math.floor((diff % 60000) / 1000);
+      document.getElementById("countdown").textContent =
+        `倒计时：${days}天 ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    const countdownInterval = setInterval(updateCountdown, 1000);
+    updateCountdown();
+
+    // Celebration trigger
+    function triggerCelebration() {
+      // 隐藏图片
+      document.getElementById("photo").style.display = "none";
+      
+      // 显示庆典内容
+      document.getElementById("subtitle").classList.add("fadeOut");
+      document.getElementById("countdown").classList.add("fadeOut");
+      document.getElementById("triggerButton").classList.add("fadeOut");
+      document.getElementById("bigTitle").style.display = "block";
+      document.getElementById("cake").style.display = "block";
+
+      // 显示信封按钮
+      document.getElementById("envelopeButton").style.display = "block";
+    }
+
+    // 打开信封
+    function openEnvelope() {
+      document.getElementById("envelopeButton").style.display = "none"; // 隐藏信封按钮
+      document.getElementById("envelopeContent").style.display = "block"; // 显示信封内容
+    }
+
+    // 关闭信封
+    function closeEnvelope() {
+      document.getElementById("envelopeContent").style.display = "none"; // 隐藏信封内容
+    }
+  </script>
+</body>
+
+</html>
